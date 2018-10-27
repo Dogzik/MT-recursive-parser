@@ -25,10 +25,10 @@ public:
         reason.push_back('\n');
         pos -= 1;
         while (pos > 0) {
-            reason.push_back('~');
+            reason.push_back(' ');
             pos -= 1;
         }
-        reason.append("^~");
+        reason.append("^");
     }
 };
 
