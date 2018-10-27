@@ -10,7 +10,7 @@ using std::cout;
 using std::endl;
 
 int main() {
-    std::string s = "1 + 2";
+    std::string s = "--3";
     istringstream is(s);
 
     auto tmp = tokenize(is);

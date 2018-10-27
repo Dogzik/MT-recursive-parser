@@ -14,22 +14,7 @@ public:
         return reason.c_str();
     }
 
-    explicit lexer_exception(std::istream &in) : reason("Unexpected symbol at position ") {
-        auto pos = in.tellg();
-        reason.append(std::to_string(pos));
-        reason.append(":\n");
-        auto sz = reason.size();
-        reason.resize(sz + pos);
-        in.seekg(0);
-        in.read(reason.data() + sz, pos);
-        reason.push_back('\n');
-        pos -= 1;
-        while (pos > 0) {
-            reason.push_back(' ');
-            pos -= 1;
-        }
-        reason.append("^");
-    }
+    explicit lexer_exception(std::istream &in);
 };
 
 enum token_type {
