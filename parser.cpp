@@ -12,17 +12,21 @@ static bool in_list(token_type x, std::initializer_list<token_type> list) {
 }
 
 
+static node parse_E(const std::vector<token> &data, size_t &ind);
 
-static node parse_E(const std::vector<token>& data, size_t& ind);
-static node parse_X(const std::vector<token>& data, size_t& ind);
-static node parse_T(const std::vector<token>& data, size_t& ind);
-static node parse_Y(const std::vector<token>& data, size_t& ind);
-static node parse_F(const std::vector<token>& data, size_t& ind);
-static node parse_P(const std::vector<token>& data, size_t& ind);
+static node parse_X(const std::vector<token> &data, size_t &ind);
 
-static node parse_E(const std::vector<token>& data, size_t& ind) {
+static node parse_T(const std::vector<token> &data, size_t &ind);
+
+static node parse_Y(const std::vector<token> &data, size_t &ind);
+
+static node parse_F(const std::vector<token> &data, size_t &ind);
+
+static node parse_P(const std::vector<token> &data, size_t &ind);
+
+static node parse_E(const std::vector<token> &data, size_t &ind) {
     node res(E);
-    auto const& cur = data[ind];
+    auto const &cur = data[ind];
     if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER})) {
         res.children.push_back(parse_T(data, ind));
 
@@ -33,9 +37,9 @@ static node parse_E(const std::vector<token>& data, size_t& ind) {
     return res;
 }
 
-static node parse_X(const std::vector<token>& data, size_t& ind) {
+static node parse_X(const std::vector<token> &data, size_t &ind) {
     node res(X);
-    auto const& cur = data[ind];
+    auto const &cur = data[ind];
     if (in_list(cur.type, {PLUS})) {
         res.children.emplace_back(TERM, cur);
         ++ind;
@@ -58,9 +62,9 @@ static node parse_X(const std::vector<token>& data, size_t& ind) {
     return res;
 }
 
-static node parse_T(const std::vector<token>& data, size_t& ind) {
+static node parse_T(const std::vector<token> &data, size_t &ind) {
     node res(T);
-    auto const& cur = data[ind];
+    auto const &cur = data[ind];
     if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER})) {
         res.children.push_back(parse_F(data, ind));
 
@@ -71,9 +75,9 @@ static node parse_T(const std::vector<token>& data, size_t& ind) {
     return res;
 }
 
-static node parse_Y(const std::vector<token>& data, size_t& ind) {
+static node parse_Y(const std::vector<token> &data, size_t &ind) {
     node res(Y);
-    auto const& cur = data[ind];
+    auto const &cur = data[ind];
     if (in_list(cur.type, {MUL})) {
         res.children.emplace_back(TERM, cur);
         ++ind;
@@ -89,9 +93,9 @@ static node parse_Y(const std::vector<token>& data, size_t& ind) {
     return res;
 }
 
-static node parse_F(const std::vector<token>& data, size_t& ind) {
+static node parse_F(const std::vector<token> &data, size_t &ind) {
     node res(F);
-    auto const& cur = data[ind];
+    auto const &cur = data[ind];
     if (in_list(cur.type, {MINUS})) {
         res.children.emplace_back(TERM, cur);
         ++ind;
@@ -99,15 +103,15 @@ static node parse_F(const std::vector<token>& data, size_t& ind) {
         res.children.push_back(parse_F(data, ind));
     } else if (in_list(cur.type, {LEFT_PARENTHESIS, NUMBER})) {
         res.children.push_back(parse_P(data, ind));
-    }  else {
+    } else {
         throw parser_exception(data, ind, {LEFT_PARENTHESIS, NUMBER, MINUS});
     }
     return res;
 }
 
-static node parse_P(const std::vector<token>& data, size_t& ind) {
+static node parse_P(const std::vector<token> &data, size_t &ind) {
     node res(P);
-    auto const& cur = data[ind];
+    auto const &cur = data[ind];
     if (in_list(cur.type, {NUMBER})) {
         res.children.emplace_back(TERM, cur);
         ++ind;
@@ -200,18 +204,15 @@ node::json node::to_json_inner() const {
             return "";
         }
         case TERM: {
-            switch (data->type) {
-                case NUMBER: {
-                    return std::stoll(data->data);
-                }
-                default: {
-                    return data->data;
-                }
+            if (data->type == NUMBER) {
+                return std::stoll(data->data);
+            } else {
+                return data->data;
             }
         }
         default: {
             json res;
-            for (auto&& item : children) {
+            for (auto &&item : children) {
                 res[to_string(item.type)] = item.to_json_inner();
             }
             return res;
