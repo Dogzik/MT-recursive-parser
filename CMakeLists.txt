@@ -3,4 +3,6 @@ project(LAB2)
 
 set(CMAKE_CXX_STANDARD 17)
 
+include_directories(third_party)
+
 add_executable(LAB2 main.cpp lexer.h lexer.cpp parser.cpp parser.h)

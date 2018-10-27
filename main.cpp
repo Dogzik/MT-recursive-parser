@@ -10,11 +10,12 @@ using std::cout;
 using std::endl;
 
 int main() {
-    std::string s = "-7";
+    std::string s = "1 + 2";
     istringstream is(s);
 
     auto tmp = tokenize(is);
     auto res = parse(tmp);
 
+    cout << res.to_json();
     return 0;
 }

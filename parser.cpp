@@ -1,3 +1,4 @@
+#include <type_traits>
 #include "parser.h"
 
 
@@ -36,14 +37,14 @@ static node parse_X(const std::vector<token>& data, size_t& ind) {
     node res(X);
     auto const& cur = data[ind];
     if (in_list(cur.type, {PLUS})) {
-        res.children.emplace_back(TERM, cur.data);
+        res.children.emplace_back(TERM, cur);
         ++ind;
 
         res.children.push_back(parse_T(data, ind));
 
         res.children.push_back(parse_X(data, ind));
     } else if (in_list(cur.type, {MINUS})) {
-        res.children.emplace_back(TERM, cur.data);
+        res.children.emplace_back(TERM, cur);
         ++ind;
 
         res.children.push_back(parse_T(data, ind));
@@ -74,7 +75,7 @@ static node parse_Y(const std::vector<token>& data, size_t& ind) {
     node res(Y);
     auto const& cur = data[ind];
     if (in_list(cur.type, {MUL})) {
-        res.children.emplace_back(TERM, cur.data);
+        res.children.emplace_back(TERM, cur);
         ++ind;
 
         res.children.push_back(parse_F(data, ind));
@@ -94,7 +95,7 @@ static node parse_F(const std::vector<token>& data, size_t& ind) {
     if (in_list(cur.type, {LEFT_PARENTHESIS, NUMBER})) {
         res.children.push_back(parse_P(data, ind));
     } else if (in_list(cur.type, {MINUS})) {
-        res.children.emplace_back(TERM, cur.data);
+        res.children.emplace_back(TERM, cur);
         ++ind;
 
         res.children.push_back(parse_P(data, ind));
@@ -108,10 +109,10 @@ static node parse_P(const std::vector<token>& data, size_t& ind) {
     node res(P);
     auto const& cur = data[ind];
     if (in_list(cur.type, {NUMBER})) {
-        res.children.emplace_back(TERM, cur.data);
+        res.children.emplace_back(TERM, cur);
         ++ind;
     } else if (in_list(cur.type, {LEFT_PARENTHESIS})) {
-        res.children.emplace_back(TERM, cur.data);
+        res.children.emplace_back(TERM, cur);
         ++ind;
 
         res.children.push_back(parse_E(data, ind));
@@ -120,7 +121,7 @@ static node parse_P(const std::vector<token>& data, size_t& ind) {
             throw parser_exception(data, ind, {RIGHT_PARENTHESIS});
         }
 
-        res.children.emplace_back(TERM, cur.data);
+        res.children.emplace_back(TERM, cur);
         ++ind;
     }
     return res;
@@ -129,4 +130,89 @@ static node parse_P(const std::vector<token>& data, size_t& ind) {
 node parse(const std::vector<token> &data) {
     size_t ind = 0;
     return parse_E(data, ind);
+}
+
+std::string to_string(node_type x) {
+    switch (x) {
+        case E: {
+            return "E";
+        }
+        case X: {
+            return "X";;
+        }
+        case T: {
+            return "T";
+        }
+        case Y: {
+            return "Y";
+        }
+        case F: {
+            return "F";
+        }
+        case P: {
+            return "P";
+        }
+        case EPS: {
+            return "EPS";
+        }
+        case TERM: {
+            return "TERM";
+        }
+    }
+}
+
+
+parser_exception::parser_exception(std::vector<token> const &data, size_t pos,
+                                   std::initializer_list<token_type> expected) {
+    std::ostringstream os;
+    os << "Unexpected token " << data[pos].type << " at position " << pos << ":\n";
+    size_t cnt = 0;
+    for (size_t i = 0; i < pos; ++i) {
+        os << data[i].data << ' ';
+        cnt += data[i].data.size() + 1;
+    }
+    os << data[pos].data << '\n';
+    for (size_t i = 0; i < cnt; ++i) {
+        os.put(' ');
+    }
+    os.put('^');
+    for (size_t i = 1; i < data[pos].data.size(); ++i) {
+        os.put('~');
+    }
+    os << "\nExpected: ";
+    for (auto x : expected) {
+        os << x << " ";
+    }
+    reason = os.str();
+}
+
+std::string node::to_json() const {
+    json res;
+    res[to_string(type)] = to_json_inner();
+    return res.dump(2);
+}
+
+node::json node::to_json_inner() const {
+    switch (type) {
+        case EPS: {
+            return "";
+        }
+        case TERM: {
+            switch (data->type) {
+                case NUMBER: {
+                    return std::stoll(data->data);
+                }
+                default: {
+                    return data->data;
+                }
+            }
+        }
+        default: {
+            json res;
+            for (auto&& item : children) {
+                res[to_string(item.type)] = item.to_json_inner();
+            }
+            return res;
+        }
+    }
 }
