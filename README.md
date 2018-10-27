@@ -7,8 +7,8 @@ E -> E-T
 E -> T
 T -> T*F
 T -> F
+F -> -F
 F -> P
-F -> -P
 P -> n
 P -> (E)
 ```
@@ -26,8 +26,8 @@ X -> ε
 T -> FY
 Y -> *FY
 Y -> ε
+F -> -F
 F -> P
-F -> -P
 P -> n
 P -> (E)
 ```
