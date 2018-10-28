@@ -22,7 +22,17 @@ static node parse_Y(const std::vector<token> &data, size_t &ind);
 
 static node parse_F(const std::vector<token> &data, size_t &ind);
 
-static node parse_P(const std::vector<token> &data, size_t &ind);
+
+static node parse_I(const std::vector<token> &data, size_t &ind);
+
+static node parse_A(const std::vector<token> &data, size_t &ind);
+
+static node parse_H(const std::vector<token> &data, size_t &ind);
+
+static node parse_B(const std::vector<token> &data, size_t &ind);
+
+static node parse_K(const std::vector<token> &data, size_t &ind);
+
 
 static node parse_E(const std::vector<token> &data, size_t &ind) {
     node res(E);
@@ -54,10 +64,10 @@ static node parse_X(const std::vector<token> &data, size_t &ind) {
         res.children.push_back(parse_T(data, ind));
 
         res.children.push_back(parse_X(data, ind));
-    } else if (in_list(cur.type, {END, RIGHT_PARENTHESIS})) {
+    } else if (in_list(cur.type, {END})) {
         res.children.emplace_back(EPS);
     } else {
-        throw parser_exception(data, ind, {PLUS, MINUS, RIGHT_PARENTHESIS, END});
+        throw parser_exception(data, ind, {PLUS, MINUS, END});
     }
     return res;
 }
@@ -85,10 +95,10 @@ static node parse_Y(const std::vector<token> &data, size_t &ind) {
         res.children.push_back(parse_F(data, ind));
 
         res.children.push_back(parse_Y(data, ind));
-    } else if (in_list(cur.type, {END, RIGHT_PARENTHESIS, MINUS, PLUS})) {
+    } else if (in_list(cur.type, {END, MINUS, PLUS})) {
         res.children.emplace_back(EPS);
     } else {
-        throw parser_exception(data, ind, {MUL, END, RIGHT_PARENTHESIS, MINUS, PLUS});
+        throw parser_exception(data, ind, {MUL, END, MINUS, PLUS});
     }
     return res;
 }
@@ -101,34 +111,122 @@ static node parse_F(const std::vector<token> &data, size_t &ind) {
         ++ind;
 
         res.children.push_back(parse_F(data, ind));
-    } else if (in_list(cur.type, {LEFT_PARENTHESIS, NUMBER})) {
-        res.children.push_back(parse_P(data, ind));
-    } else {
-        throw parser_exception(data, ind, {LEFT_PARENTHESIS, NUMBER, MINUS});
-    }
-    return res;
-}
-
-static node parse_P(const std::vector<token> &data, size_t &ind) {
-    node res(P);
-    auto const &cur = data[ind];
-    if (in_list(cur.type, {NUMBER})) {
+    } else if (in_list(cur.type, {NUMBER})) {
         res.children.emplace_back(TERM, cur);
         ++ind;
     } else if (in_list(cur.type, {LEFT_PARENTHESIS})) {
         res.children.emplace_back(TERM, cur);
         ++ind;
 
-        res.children.push_back(parse_E(data, ind));
+        res.children.push_back(parse_I(data, ind));
 
         if (data[ind].type != RIGHT_PARENTHESIS) {
             throw parser_exception(data, ind, {RIGHT_PARENTHESIS});
         }
 
-        res.children.emplace_back(TERM, data[ind].data);
+        res.children.emplace_back(TERM, data[ind]);
         ++ind;
     } else {
-        throw parser_exception(data, ind, {NUMBER, LEFT_PARENTHESIS});
+        throw parser_exception(data, ind, {LEFT_PARENTHESIS, NUMBER, MINUS});
+    }
+    return res;
+}
+
+
+static node parse_I(const std::vector<token> &data, size_t &ind) {
+    node res(I);
+    auto const &cur = data[ind];
+    if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER})) {
+        res.children.push_back(parse_H(data, ind));
+
+        res.children.push_back(parse_A(data, ind));
+    } else {
+        throw parser_exception(data, ind, {LEFT_PARENTHESIS, MINUS, NUMBER});
+    }
+    return res;
+}
+
+static node parse_A(const std::vector<token> &data, size_t &ind) {
+    node res(A);
+    auto const &cur = data[ind];
+    if (in_list(cur.type, {PLUS})) {
+        res.children.emplace_back(TERM, cur);
+        ++ind;
+
+        res.children.push_back(parse_H(data, ind));
+
+        res.children.push_back(parse_A(data, ind));
+    } else if (in_list(cur.type, {MINUS})) {
+        res.children.emplace_back(TERM, cur);
+        ++ind;
+
+        res.children.push_back(parse_H(data, ind));
+
+        res.children.push_back(parse_A(data, ind));
+    } else if (in_list(cur.type, {RIGHT_PARENTHESIS})) {
+        res.children.emplace_back(EPS);
+    } else {
+        throw parser_exception(data, ind, {PLUS, MINUS, RIGHT_PARENTHESIS});
+    }
+    return res;
+}
+
+static node parse_H(const std::vector<token> &data, size_t &ind) {
+    node res(H);
+    auto const &cur = data[ind];
+    if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER})) {
+        res.children.push_back(parse_K(data, ind));
+
+        res.children.push_back(parse_B(data, ind));
+    } else {
+        throw parser_exception(data, ind, {LEFT_PARENTHESIS, MINUS, NUMBER});
+    }
+    return res;
+}
+
+static node parse_B(const std::vector<token> &data, size_t &ind) {
+    node res(B);
+    auto const &cur = data[ind];
+    if (in_list(cur.type, {MUL})) {
+        res.children.emplace_back(TERM, cur);
+        ++ind;
+
+        res.children.push_back(parse_K(data, ind));
+
+        res.children.push_back(parse_B(data, ind));
+    } else if (in_list(cur.type, {RIGHT_PARENTHESIS, MINUS, PLUS})) {
+        res.children.emplace_back(EPS);
+    } else {
+        throw parser_exception(data, ind, {MUL, RIGHT_PARENTHESIS, MINUS, PLUS});
+    }
+    return res;
+}
+
+static node parse_K(const std::vector<token> &data, size_t &ind) {
+    node res(K);
+    auto const &cur = data[ind];
+    if (in_list(cur.type, {MINUS})) {
+        res.children.emplace_back(TERM, cur);
+        ++ind;
+
+        res.children.push_back(parse_K(data, ind));
+    } else if (in_list(cur.type, {NUMBER})) {
+        res.children.emplace_back(TERM, cur);
+        ++ind;
+    } else if (in_list(cur.type, {LEFT_PARENTHESIS})) {
+        res.children.emplace_back(TERM, cur);
+        ++ind;
+
+        res.children.push_back(parse_I(data, ind));
+
+        if (data[ind].type != RIGHT_PARENTHESIS) {
+            throw parser_exception(data, ind, {RIGHT_PARENTHESIS});
+        }
+
+        res.children.emplace_back(TERM, data[ind]);
+        ++ind;
+    } else {
+        throw parser_exception(data, ind, {LEFT_PARENTHESIS, NUMBER, MINUS});
     }
     return res;
 }
@@ -136,6 +234,14 @@ static node parse_P(const std::vector<token> &data, size_t &ind) {
 node parse(const std::vector<token> &data) {
     size_t ind = 0;
     return parse_E(data, ind);
+}
+
+node parse(std::istream &in) {
+    return parse(tokenize(in));
+}
+
+node parse(std::string const &s) {
+    return parse(tokenize(s));
 }
 
 std::string to_string(node_type x) {
@@ -155,14 +261,26 @@ std::string to_string(node_type x) {
         case F: {
             return "F";
         }
-        case P: {
-            return "P";
-        }
         case EPS: {
             return "EPS";
         }
         case TERM: {
             return "TERM";
+        }
+        case I: {
+            return "I";
+        }
+        case A: {
+            return "A";
+        }
+        case H: {
+            return "H";
+        }
+        case B: {
+            return "B";
+        }
+        case K: {
+            return "K";
         }
     }
 }
@@ -189,15 +307,6 @@ bool operator!=(node const &a, node const &b) {
     return !(a == b);
 }
 
-node parse(std::istream &in) {
-    return parse(tokenize(in));
-}
-
-node parse(std::string const &s) {
-    return parse(tokenize(s));
-}
-
-
 parser_exception::parser_exception(std::vector<token> const &data, size_t pos,
                                    std::initializer_list<token_type> expected) {
     std::ostringstream os;
@@ -223,25 +332,23 @@ parser_exception::parser_exception(std::vector<token> const &data, size_t pos,
 }
 
 std::string node::to_json() const {
-    json res;
-    res[to_string(type)] = to_json_inner();
-    return res.dump(2);
+    return to_json_inner().dump(2);
 }
 
 node::json node::to_json_inner() const {
     switch (type) {
         case EPS: {
-            return "";
+            return to_string(EPS);
         }
         case TERM: {
             return data->data;
         }
         default: {
-            json res;
+            json tmp;
             for (auto &&item : children) {
-                res[to_string(item.type)] = item.to_json_inner();
+                tmp.push_back(item.to_json_inner());
             }
-            return res;
+            return { {to_string(type), tmp} };
         }
     }
 }

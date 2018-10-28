@@ -137,7 +137,7 @@ TEST(Lexing, RandomTokens) {
 
 TEST(Parsing, BasicTest) {
     istringstream is;
-    node expected = n(E, vn{n(T, vn{n(F, vn{n(P, vn{n(TERM, token(NUMBER, "1"))})}), n(Y, vn{n(EPS)})}),  n(X, vn{n(EPS)})});
+    node expected = n(E, vn{n(T, vn{n(F, vn{n(TERM, token(NUMBER, "1"))}), n(Y, vn{n(EPS)})}),  n(X, vn{n(EPS)})});
 
     auto tmp = vector<token>{token(NUMBER, "1"), token(END)};
     EXPECT_EQ(parse(tmp), expected);
@@ -150,7 +150,7 @@ TEST(Parsing, BasicTest) {
     EXPECT_EQ(parse(is), expected);
     EXPECT_EQ(parse(is.str()), expected);
 
-    expected = n(E, vn{n(T, vn{n(F, vn{n(TERM, token(MINUS, "-")), n(F, vn{n(P, vn{n(TERM, token(NUMBER, "1"))})})}), n(Y, vn{n(EPS)})}),  n(X, vn{n(EPS)})});
+    expected = n(E, vn{n(T, vn{n(F, vn{n(TERM, token(MINUS, "-")), n(F, vn{n(TERM, token(NUMBER, "1"))})}), n(Y, vn{n(EPS)})}),  n(X, vn{n(EPS)})});
     tmp = {token(MINUS, "-"), token(NUMBER, "1"), token(END)};
     EXPECT_EQ(parse(tmp), expected);
 
@@ -174,7 +174,7 @@ TEST(Parsing, Failures) {
     EXPECT_THROW(parse("(5 + 3) + (5 - 3) + * -7"), parser_exception);
     EXPECT_THROW(parse("------------------------------"), parser_exception);
     EXPECT_THROW(parse("(((( 5 + 66)"), parser_exception);
-    //EXPECT_THROW(parse("(5 + 7)) *    3"), parser_exception);
+    EXPECT_THROW(parse("(5 + 7)) *    3"), parser_exception);
 }
 
 int main(int argc, char *argv[]) {
