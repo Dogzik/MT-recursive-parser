@@ -10,6 +10,8 @@
 using std::istringstream;
 using std::vector;
 using std::string;
+using vn = vector<node>;
+using n = node;
 
 void reset_stream(istringstream& is, std::string const& data) {
     is.clear();
@@ -114,13 +116,38 @@ TEST(Lexing, RandomTokens) {
     istringstream is;
     vector<token> expected;
 
-    for (size_t len = 0; len < 2000; ++len) {
+    for (size_t len = 0; len < 200; ++len) {
         expected = gen_random_tokens(len);
         reset_stream(is, to_string(expected));
         EXPECT_EQ(tokenize(is), expected);
     }
 }
 
+
+TEST(Parsing, BasicTest) {
+    istringstream is;
+    node expected = n(E, vn{n(T, vn{n(F, vn{n(P, vn{n(TERM, token(NUMBER, "1"))})}), n(Y, vn{n(EPS)})}),  n(X, vn{n(EPS)})});
+
+    auto tmp = vector<token>{token(NUMBER, "1"), token(END)};
+    EXPECT_EQ(parse(tmp), expected);
+
+    reset_stream(is, "1");
+    EXPECT_EQ(parse(is), expected);
+
+    reset_stream(is, "    \n\n\n\n\n\t  1 \t\t\t\t");
+    EXPECT_EQ(parse(is), expected);
+
+
+    expected = n(E, vn{n(T, vn{n(F, vn{n(TERM, token(MINUS, "-")), n(F, vn{n(P, vn{n(TERM, token(NUMBER, "1"))})})}), n(Y, vn{n(EPS)})}),  n(X, vn{n(EPS)})});
+    tmp = {token(MINUS, "-"), token(NUMBER, "1"), token(END)};
+    EXPECT_EQ(parse(tmp), expected);
+
+    reset_stream(is, "-1");
+    EXPECT_EQ(parse(is), expected);
+
+    reset_stream(is, "    \n\n\n\n\n\n -\t\t\t\t\t\t\t 1     \n");
+    EXPECT_EQ(parse(is), expected);
+}
 
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);

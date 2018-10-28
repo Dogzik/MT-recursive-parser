@@ -26,21 +26,28 @@ enum node_type {
 std::string to_string(node_type x);
 
 struct node {
-    template<class K, class V, class dummy_compare, class A>
-    using my_workaround_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
-    using json = nlohmann::basic_json<my_workaround_fifo_map>;
     node_type type;
     std::optional<token> data;
     std::vector<node> children;
 
 
     node(node_type _type) : type(_type) {}
+    node(node_type _type, std::vector<node> _children) : type(_type), children(std::move(_children)) {}
     node(node_type _type, token const& _data) : type(_type), data(_data), children() {}
 
     std::string to_json() const ;
 
 private:
+    template<class K, class V, class dummy_compare, class A>
+    using my_workaround_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
+    using json = nlohmann::basic_json<my_workaround_fifo_map>;
+
     json to_json_inner() const;
 };
 
+bool operator==(node const& a, node const& b);
+bool operator!=(node const& a, node const& b);
+
+
 node parse(const std::vector<token> &data);
+node parse(std::istream& in);

@@ -167,6 +167,32 @@ std::string to_string(node_type x) {
     }
 }
 
+bool operator==(node const &a, node const &b) {
+    if (a.type != b.type) {
+        return false;
+    }
+    if (a.type == TERM) {
+        return (a.data == b.data);
+    }
+    if (a.children.size() != b.children.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < a.children.size(); ++i) {
+        if (!(a.children[i] == b.children[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool operator!=(node const &a, node const &b) {
+    return !(a == b);
+}
+
+node parse(std::istream &in) {
+    return parse(tokenize(in));
+}
+
 
 parser_exception::parser_exception(std::vector<token> const &data, size_t pos,
                                    std::initializer_list<token_type> expected) {
