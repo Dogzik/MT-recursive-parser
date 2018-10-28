@@ -204,11 +204,7 @@ node::json node::to_json_inner() const {
             return "";
         }
         case TERM: {
-            if (data->type == NUMBER) {
-                return std::stoll(data->data);
-            } else {
-                return data->data;
-            }
+            return data->data;
         }
         default: {
             json res;

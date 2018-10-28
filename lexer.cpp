@@ -91,6 +91,15 @@ std::ostream &operator<<(std::ostream &os, token_type type) {
     }
 }
 
+bool operator==(token const &a, token const &b) {
+    return (a.type == b.type) && (a.data == b.data);
+}
+
+bool operator!=(token const &a, token const &b) {
+    return !(a == b);
+}
+
+
 lexer_exception::lexer_exception(std::istream &in) : reason("Unexpected symbol at position ") {
     auto pos = in.tellg();
     reason.append(std::to_string(pos));

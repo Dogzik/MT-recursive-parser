@@ -27,8 +27,11 @@ struct token {
     token_type type;
     std::string data;
 
-    token(token_type _type, std::string _data)
+    explicit token(token_type _type, std::string _data = "")
             : type(_type), data(std::move(_data)) {}
 };
+
+bool operator==(token const& a, token const& b);
+bool operator!=(token const& a, token const& b);
 
 std::vector<token> tokenize(std::istream &in);
