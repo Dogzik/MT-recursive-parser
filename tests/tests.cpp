@@ -163,6 +163,20 @@ TEST(Parsing, BasicTest) {
     EXPECT_EQ(parse(is.str()), expected);
 }
 
+TEST(Parsing, Failures) {
+    EXPECT_NO_THROW(parse("1 + 1 + 2 * 4"));
+    EXPECT_THROW(parse("1 + 2 / 1"), lexer_exception);
+    EXPECT_THROW(parse("1 + 1 + 124 *"), parser_exception);
+    EXPECT_THROW(parse("()"), parser_exception);
+    EXPECT_THROW(parse("5 + 0x14"), lexer_exception);
+    EXPECT_THROW(parse("5 + + 7"), parser_exception);
+    EXPECT_THROW(parse("((5 + 3) * 2) + --------"), parser_exception);
+    EXPECT_THROW(parse("(5 + 3) + (5 - 3) + * -7"), parser_exception);
+    EXPECT_THROW(parse("------------------------------"), parser_exception);
+    EXPECT_THROW(parse("(((( 5 + 66)"), parser_exception);
+    //EXPECT_THROW(parse("(5 + 7)) *    3"), parser_exception);
+}
+
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

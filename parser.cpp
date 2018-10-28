@@ -125,7 +125,7 @@ static node parse_P(const std::vector<token> &data, size_t &ind) {
             throw parser_exception(data, ind, {RIGHT_PARENTHESIS});
         }
 
-        res.children.emplace_back(TERM, cur);
+        res.children.emplace_back(TERM, data[ind].data);
         ++ind;
     } else {
         throw parser_exception(data, ind, {NUMBER, LEFT_PARENTHESIS});
