@@ -51,3 +51,4 @@ bool operator!=(node const& a, node const& b);
 
 node parse(const std::vector<token> &data);
 node parse(std::istream& in);
+node parse(std::string const& s);

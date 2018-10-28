@@ -35,3 +35,4 @@ bool operator==(token const& a, token const& b);
 bool operator!=(token const& a, token const& b);
 
 std::vector<token> tokenize(std::istream &in);
+std::vector<token> tokenize(std::string const& s);

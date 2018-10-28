@@ -1,4 +1,5 @@
 #include <cctype>
+#include <sstream>
 #include "lexer.h"
 
 using std::vector;
@@ -65,6 +66,8 @@ vector<token> tokenize(istream &in) {
     return res;
 }
 
+
+
 std::ostream &operator<<(std::ostream &os, token_type type) {
     switch (type) {
         case LEFT_PARENTHESIS: {
@@ -89,6 +92,11 @@ std::ostream &operator<<(std::ostream &os, token_type type) {
             return os << "END";
         }
     }
+}
+
+std::vector<token> tokenize(std::string const &s) {
+    std::istringstream in(s);
+    return tokenize(in);
 }
 
 bool operator==(token const &a, token const &b) {

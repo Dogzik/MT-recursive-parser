@@ -193,6 +193,10 @@ node parse(std::istream &in) {
     return parse(tokenize(in));
 }
 
+node parse(std::string const &s) {
+    return parse(tokenize(s));
+}
+
 
 parser_exception::parser_exception(std::vector<token> const &data, size_t pos,
                                    std::initializer_list<token_type> expected) {

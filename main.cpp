@@ -29,8 +29,7 @@ int main(int argc, char *argv[]) {
     }
     try {
         if (!std::strcmp(argv[1], "-s")) {
-            istringstream is(argv[2]);
-            cout << parse(tokenize(is)).to_json();
+            cout << parse(argv[2]).to_json();
         } else {
             ifstream in(argv[2]);
             if (!in.is_open()) {

@@ -76,21 +76,26 @@ TEST(Lexing, BasicTest) {
     reset_stream(is, "1");
     expected = {token(NUMBER, "1"), token(END)};
     EXPECT_EQ(tokenize(is), expected);
+    EXPECT_EQ(tokenize(is.str()), expected);
 
     reset_stream(is, " \t\n 1 \n  \t  ");
     EXPECT_EQ(tokenize(is), expected);
+    EXPECT_EQ(tokenize(is.str()), expected);
 
     reset_stream(is, "(2+3)*4");
     expected = {token(LEFT_PARENTHESIS, "("), token(NUMBER, "2"), token(PLUS, "+"), token(NUMBER, "3"),
                 token(RIGHT_PARENTHESIS, ")"), token(MUL, "*"), token(NUMBER, "4"), token(END)};
     EXPECT_EQ(tokenize(is), expected);
+    EXPECT_EQ(tokenize(is.str()), expected);
 
     reset_stream(is, "  (  2  +  \n 3  )  *  \t\t\t\t\t\t 4  \n");
     EXPECT_EQ(tokenize(is), expected);
+    EXPECT_EQ(tokenize(is.str()), expected);
 
     reset_stream(is, "");
     expected = {token(END)};
     EXPECT_EQ(tokenize(is), expected);
+    EXPECT_EQ(tokenize(is.str()), expected);
 }
 
 TEST(Lexing, Failures) {
@@ -98,18 +103,23 @@ TEST(Lexing, Failures) {
 
     reset_stream(is, "\n1\n2  + (((((( ** ((()()))) + 2 ---7");
     EXPECT_NO_THROW(tokenize(is));
+    EXPECT_NO_THROW(tokenize(is.str()));
 
     reset_stream(is, "3451093456103456014356 + --------2");
     EXPECT_NO_THROW(tokenize(is));
+    EXPECT_NO_THROW(tokenize(is.str()));
 
     reset_stream(is, "\t\t\t\t\n\n\n 1 + 3 / 4");
     EXPECT_THROW(tokenize(is), lexer_exception);
+    EXPECT_THROW(tokenize(is.str()), lexer_exception);
 
     reset_stream(is, "2424 + ------- 2 * 3 x ++ 8");
     EXPECT_THROW(tokenize(is), lexer_exception);
+    EXPECT_THROW(tokenize(is.str()), lexer_exception);
 
     reset_stream(is, "234234234 + 7 9 3 ((((((((((((((****** 4 5)% 3");
     EXPECT_THROW(tokenize(is), lexer_exception);
+    EXPECT_THROW(tokenize(is.str()), lexer_exception);
 }
 
 TEST(Lexing, RandomTokens) {
@@ -120,6 +130,7 @@ TEST(Lexing, RandomTokens) {
         expected = gen_random_tokens(len);
         reset_stream(is, to_string(expected));
         EXPECT_EQ(tokenize(is), expected);
+        EXPECT_EQ(tokenize(is.str()), expected);
     }
 }
 
@@ -133,10 +144,11 @@ TEST(Parsing, BasicTest) {
 
     reset_stream(is, "1");
     EXPECT_EQ(parse(is), expected);
+    EXPECT_EQ(parse(is.str()), expected);
 
     reset_stream(is, "    \n\n\n\n\n\t  1 \t\t\t\t");
     EXPECT_EQ(parse(is), expected);
-
+    EXPECT_EQ(parse(is.str()), expected);
 
     expected = n(E, vn{n(T, vn{n(F, vn{n(TERM, token(MINUS, "-")), n(F, vn{n(P, vn{n(TERM, token(NUMBER, "1"))})})}), n(Y, vn{n(EPS)})}),  n(X, vn{n(EPS)})});
     tmp = {token(MINUS, "-"), token(NUMBER, "1"), token(END)};
@@ -144,9 +156,11 @@ TEST(Parsing, BasicTest) {
 
     reset_stream(is, "-1");
     EXPECT_EQ(parse(is), expected);
+    EXPECT_EQ(parse(is.str()), expected);
 
     reset_stream(is, "    \n\n\n\n\n\n -\t\t\t\t\t\t\t 1     \n");
     EXPECT_EQ(parse(is), expected);
+    EXPECT_EQ(parse(is.str()), expected);
 }
 
 int main(int argc, char *argv[]) {
