@@ -2,8 +2,10 @@
 #include <vector>
 #include <random>
 #include <string>
+#include <unordered_map>
 #include <gtest/gtest.h>
 #include <gtest/gtest-death-test.h>
+#include <queue>
 #include "../lexer.h"
 #include "../parser.h"
 
@@ -65,6 +67,123 @@ string to_string(vector<token> const& tokens) {
     for (auto&& item : tokens) {
         res.append(item.data);
         res.push_back(' ');
+    }
+    return res;
+}
+
+node gen_random_tree(int max_depth) {
+    auto generator = std::ranlux24();
+    using std::unordered_map;
+    unordered_map<node_type, vector<vector<std::pair<node_type, std::optional<token>>>>> rules{};
+    
+    auto t = [&generator](node_type nt, token_type tt = END) -> std::pair<node_type, std::optional<token>> {
+        std::optional<token> data;
+        switch (nt) {
+            case EPS: {
+                return {nt, data};
+            }
+            case TERM: {
+                switch (tt) {
+                    case PLUS: {
+                        data = token(tt, "+");
+                        break;
+                    }
+                    case MINUS: {
+                        data = token(tt, "-");
+                        break;
+                    }
+                    case MUL: {
+                        data = token(tt, "*");
+                        break;
+                    }
+                    case NUMBER: {
+                        data = token(tt, std::to_string(generator()));
+                        break;
+                    }
+                    case LEFT_PARENTHESIS: {
+                        data = token(tt, "(");
+                        break;
+                    }
+                    case RIGHT_PARENTHESIS: {
+                        data = token(tt, ")");
+                        break;
+                    }
+                    default: {
+                        assert(false);
+                    }
+                }
+                return {nt, data};
+            }
+            default: {
+                return {nt, data};
+            }
+        }
+    };
+    
+    
+    rules[E].push_back({t(T), t(X)});
+
+    rules[X].push_back({t(EPS)});
+    rules[X].push_back({t(TERM, PLUS), t(T), t(X)});
+    rules[X].push_back({t(TERM, MINUS), t(T), t(X)});
+
+    rules[T].push_back({t(F), t(Y)});
+
+
+    rules[Y].push_back({t(EPS)});
+    rules[Y].push_back({t(TERM, MUL), t(F), t(Y)});
+
+    rules[F].push_back({t(TERM, NUMBER)});
+    rules[F].push_back({t(TERM, MINUS), t(F)});
+    rules[F].push_back({t(TERM, LEFT_PARENTHESIS), t(I), t(TERM, RIGHT_PARENTHESIS)});
+    
+    rules[I].push_back({t(H), t(A)});
+
+    rules[A].push_back({t(EPS)});
+    rules[A].push_back({t(TERM, PLUS), t(H), t(A)});
+    rules[A].push_back({t(TERM, MINUS), t(H), t(A)});
+
+    rules[H].push_back({t(K), t(B)});
+
+    rules[B].push_back({t(EPS)});
+    rules[B].push_back({t(TERM, MUL), t(K), t(B)});
+
+    rules[K].push_back({t(TERM, NUMBER)});
+    rules[K].push_back({t(TERM, MINUS), t(K)});
+    rules[K].push_back({t(TERM, LEFT_PARENTHESIS), t(I), t(TERM, RIGHT_PARENTHESIS)});
+
+    node res(E);
+
+    std::queue<std::pair<int, node*>> que;
+    que.push({0, &res});
+
+    while (!que.empty()) {
+        auto tmp = que.front();
+        auto cur = tmp.second;
+        auto depth = tmp.first;
+        que.pop();
+        auto ind = generator() % rules[cur->type].size();
+        if (depth > max_depth) {
+            ind = 0;
+        }
+        cur->children.reserve(rules[cur->type][ind].size());
+        for (auto&& item : rules[cur->type][ind]) {
+            switch (item.first) {
+                case EPS: {
+                    cur->children.emplace_back(EPS);
+                    break;
+                }
+                case TERM: {
+                    cur->children.emplace_back(TERM, *item.second);
+                    break;
+                }
+                default: {
+                    cur->children.emplace_back(item.first);
+                    que.push({depth + 1, &(cur->children.back())});
+                    break;
+                }
+            }
+        }
     }
     return res;
 }
@@ -175,6 +294,13 @@ TEST(Parsing, Failures) {
     EXPECT_THROW(parse("------------------------------"), parser_exception);
     EXPECT_THROW(parse("(((( 5 + 66)"), parser_exception);
     EXPECT_THROW(parse("(5 + 7)) *    3"), parser_exception);
+}
+
+TEST(Parsing, RandomExpressions) {
+    for (int depth = 1; depth < 50; ++depth) {
+        auto expected = gen_random_tree(depth);
+        EXPECT_EQ(parse(expected.to_string()), expected);
+    }
 }
 
 int main(int argc, char *argv[]) {

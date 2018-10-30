@@ -338,7 +338,7 @@ std::string node::to_json() const {
 node::json node::to_json_inner() const {
     switch (type) {
         case EPS: {
-            return to_string(EPS);
+            return ::to_string(EPS);
         }
         case TERM: {
             return data->data;
@@ -348,7 +348,25 @@ node::json node::to_json_inner() const {
             for (auto &&item : children) {
                 tmp.push_back(item.to_json_inner());
             }
-            return { {to_string(type), tmp} };
+            return { {::to_string(type), tmp} };
+        }
+    }
+}
+
+std::string node::to_string() const {
+    switch (type) {
+        case EPS: {
+            return "";
+        }
+        case TERM: {
+            return data->data;
+        }
+        default: {
+            std::string ans;
+            for (auto && item : children) {
+                ans.append(item.to_string());
+            }
+            return ans;
         }
     }
 }

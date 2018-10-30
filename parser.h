@@ -4,7 +4,6 @@
 #include <sstream>
 #include <memory>
 #include <optional>
-#include <fifo_map.h>
 #include <json.h>
 #include "lexer.h"
 
@@ -35,12 +34,10 @@ struct node {
     node(node_type _type, std::vector<node> _children) : type(_type), children(std::move(_children)) {}
     node(node_type _type, token const& _data) : type(_type), data(_data), children() {}
 
-    std::string to_json() const ;
-
+    std::string to_json() const;
+    std::string to_string() const;
 private:
-    template<class K, class V, class dummy_compare, class A>
-    using my_workaround_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
-    using json = nlohmann::basic_json<my_workaround_fifo_map>;
+    using json = nlohmann::json;
 
     json to_json_inner() const;
 };
