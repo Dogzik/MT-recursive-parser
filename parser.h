@@ -19,7 +19,7 @@ public:
 };
 
 enum node_type {
-    E, X, T, Y, F, TERM, EPS, I, A, H, B, K
+    E, X, T, Y, F, TERM, EPS
 };
 
 std::string to_string(node_type x);

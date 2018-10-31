@@ -37,12 +37,12 @@ static node parse_K(const std::vector<token> &data, size_t &ind);
 static node parse_E(const std::vector<token> &data, size_t &ind) {
     node res(E);
     auto const &cur = data[ind];
-    if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER})) {
+    if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER, PLUS})) {
         res.children.push_back(parse_T(data, ind));
 
         res.children.push_back(parse_X(data, ind));
     } else {
-        throw parser_exception(data, ind, {LEFT_PARENTHESIS, MINUS, NUMBER});
+        throw parser_exception(data, ind, {LEFT_PARENTHESIS, MINUS, NUMBER, PLUS});
     }
     return res;
 }
@@ -64,10 +64,10 @@ static node parse_X(const std::vector<token> &data, size_t &ind) {
         res.children.push_back(parse_T(data, ind));
 
         res.children.push_back(parse_X(data, ind));
-    } else if (in_list(cur.type, {END})) {
+    } else if (in_list(cur.type, {END, RIGHT_PARENTHESIS})) {
         res.children.emplace_back(EPS);
     } else {
-        throw parser_exception(data, ind, {PLUS, MINUS, END});
+        throw parser_exception(data, ind, {PLUS, MINUS, END, RIGHT_PARENTHESIS});
     }
     return res;
 }
@@ -75,12 +75,12 @@ static node parse_X(const std::vector<token> &data, size_t &ind) {
 static node parse_T(const std::vector<token> &data, size_t &ind) {
     node res(T);
     auto const &cur = data[ind];
-    if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER})) {
+    if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER, PLUS})) {
         res.children.push_back(parse_F(data, ind));
 
         res.children.push_back(parse_Y(data, ind));
     } else {
-        throw parser_exception(data, ind, {LEFT_PARENTHESIS, MINUS, NUMBER});
+        throw parser_exception(data, ind, {LEFT_PARENTHESIS, MINUS, NUMBER, PLUS});
     }
     return res;
 }
@@ -95,10 +95,10 @@ static node parse_Y(const std::vector<token> &data, size_t &ind) {
         res.children.push_back(parse_F(data, ind));
 
         res.children.push_back(parse_Y(data, ind));
-    } else if (in_list(cur.type, {END, MINUS, PLUS})) {
+    } else if (in_list(cur.type, {END, MINUS, PLUS, RIGHT_PARENTHESIS})) {
         res.children.emplace_back(EPS);
     } else {
-        throw parser_exception(data, ind, {MUL, END, MINUS, PLUS});
+        throw parser_exception(data, ind, {MUL, END, MINUS, PLUS, RIGHT_PARENTHESIS});
     }
     return res;
 }
@@ -106,7 +106,7 @@ static node parse_Y(const std::vector<token> &data, size_t &ind) {
 static node parse_F(const std::vector<token> &data, size_t &ind) {
     node res(F);
     auto const &cur = data[ind];
-    if (in_list(cur.type, {MINUS})) {
+    if (in_list(cur.type, {MINUS, PLUS})) {
         res.children.emplace_back(TERM, cur);
         ++ind;
 
@@ -118,106 +118,7 @@ static node parse_F(const std::vector<token> &data, size_t &ind) {
         res.children.emplace_back(TERM, cur);
         ++ind;
 
-        res.children.push_back(parse_I(data, ind));
-
-        if (data[ind].type != RIGHT_PARENTHESIS) {
-            throw parser_exception(data, ind, {RIGHT_PARENTHESIS});
-        }
-
-        res.children.emplace_back(TERM, data[ind]);
-        ++ind;
-    } else {
-        throw parser_exception(data, ind, {LEFT_PARENTHESIS, NUMBER, MINUS});
-    }
-    return res;
-}
-
-
-static node parse_I(const std::vector<token> &data, size_t &ind) {
-    node res(I);
-    auto const &cur = data[ind];
-    if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER})) {
-        res.children.push_back(parse_H(data, ind));
-
-        res.children.push_back(parse_A(data, ind));
-    } else {
-        throw parser_exception(data, ind, {LEFT_PARENTHESIS, MINUS, NUMBER});
-    }
-    return res;
-}
-
-static node parse_A(const std::vector<token> &data, size_t &ind) {
-    node res(A);
-    auto const &cur = data[ind];
-    if (in_list(cur.type, {PLUS})) {
-        res.children.emplace_back(TERM, cur);
-        ++ind;
-
-        res.children.push_back(parse_H(data, ind));
-
-        res.children.push_back(parse_A(data, ind));
-    } else if (in_list(cur.type, {MINUS})) {
-        res.children.emplace_back(TERM, cur);
-        ++ind;
-
-        res.children.push_back(parse_H(data, ind));
-
-        res.children.push_back(parse_A(data, ind));
-    } else if (in_list(cur.type, {RIGHT_PARENTHESIS})) {
-        res.children.emplace_back(EPS);
-    } else {
-        throw parser_exception(data, ind, {PLUS, MINUS, RIGHT_PARENTHESIS});
-    }
-    return res;
-}
-
-static node parse_H(const std::vector<token> &data, size_t &ind) {
-    node res(H);
-    auto const &cur = data[ind];
-    if (in_list(cur.type, {LEFT_PARENTHESIS, MINUS, NUMBER})) {
-        res.children.push_back(parse_K(data, ind));
-
-        res.children.push_back(parse_B(data, ind));
-    } else {
-        throw parser_exception(data, ind, {LEFT_PARENTHESIS, MINUS, NUMBER});
-    }
-    return res;
-}
-
-static node parse_B(const std::vector<token> &data, size_t &ind) {
-    node res(B);
-    auto const &cur = data[ind];
-    if (in_list(cur.type, {MUL})) {
-        res.children.emplace_back(TERM, cur);
-        ++ind;
-
-        res.children.push_back(parse_K(data, ind));
-
-        res.children.push_back(parse_B(data, ind));
-    } else if (in_list(cur.type, {RIGHT_PARENTHESIS, MINUS, PLUS})) {
-        res.children.emplace_back(EPS);
-    } else {
-        throw parser_exception(data, ind, {MUL, RIGHT_PARENTHESIS, MINUS, PLUS});
-    }
-    return res;
-}
-
-static node parse_K(const std::vector<token> &data, size_t &ind) {
-    node res(K);
-    auto const &cur = data[ind];
-    if (in_list(cur.type, {MINUS})) {
-        res.children.emplace_back(TERM, cur);
-        ++ind;
-
-        res.children.push_back(parse_K(data, ind));
-    } else if (in_list(cur.type, {NUMBER})) {
-        res.children.emplace_back(TERM, cur);
-        ++ind;
-    } else if (in_list(cur.type, {LEFT_PARENTHESIS})) {
-        res.children.emplace_back(TERM, cur);
-        ++ind;
-
-        res.children.push_back(parse_I(data, ind));
+        res.children.push_back(parse_E(data, ind));
 
         if (data[ind].type != RIGHT_PARENTHESIS) {
             throw parser_exception(data, ind, {RIGHT_PARENTHESIS});
@@ -233,7 +134,11 @@ static node parse_K(const std::vector<token> &data, size_t &ind) {
 
 node parse(const std::vector<token> &data) {
     size_t ind = 0;
-    return parse_E(data, ind);
+    auto&& res = parse_E(data, ind);
+    if (data[ind].type != END) {
+        throw parser_exception(data, ind, {END});
+    }
+    return res;
 }
 
 node parse(std::istream &in) {
@@ -250,7 +155,7 @@ std::string to_string(node_type x) {
             return "E";
         }
         case X: {
-            return "X";;
+            return "X";
         }
         case T: {
             return "T";
@@ -266,21 +171,6 @@ std::string to_string(node_type x) {
         }
         case TERM: {
             return "TERM";
-        }
-        case I: {
-            return "I";
-        }
-        case A: {
-            return "A";
-        }
-        case H: {
-            return "H";
-        }
-        case B: {
-            return "B";
-        }
-        case K: {
-            return "K";
         }
     }
 }

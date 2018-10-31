@@ -135,22 +135,8 @@ node gen_random_tree(int max_depth) {
 
     rules[F].push_back({t(TERM, NUMBER)});
     rules[F].push_back({t(TERM, MINUS), t(F)});
-    rules[F].push_back({t(TERM, LEFT_PARENTHESIS), t(I), t(TERM, RIGHT_PARENTHESIS)});
-    
-    rules[I].push_back({t(H), t(A)});
-
-    rules[A].push_back({t(EPS)});
-    rules[A].push_back({t(TERM, PLUS), t(H), t(A)});
-    rules[A].push_back({t(TERM, MINUS), t(H), t(A)});
-
-    rules[H].push_back({t(K), t(B)});
-
-    rules[B].push_back({t(EPS)});
-    rules[B].push_back({t(TERM, MUL), t(K), t(B)});
-
-    rules[K].push_back({t(TERM, NUMBER)});
-    rules[K].push_back({t(TERM, MINUS), t(K)});
-    rules[K].push_back({t(TERM, LEFT_PARENTHESIS), t(I), t(TERM, RIGHT_PARENTHESIS)});
+    rules[F].push_back({t(TERM, PLUS), t(F)});
+    rules[F].push_back({t(TERM, LEFT_PARENTHESIS), t(E), t(TERM, RIGHT_PARENTHESIS)});
 
     node res(E);
 
@@ -288,7 +274,7 @@ TEST(Parsing, Failures) {
     EXPECT_THROW(parse("1 + 1 + 124 *"), parser_exception);
     EXPECT_THROW(parse("()"), parser_exception);
     EXPECT_THROW(parse("5 + 0x14"), lexer_exception);
-    EXPECT_THROW(parse("5 + + 7"), parser_exception);
+    EXPECT_NO_THROW(parse("5 + + 7"));
     EXPECT_THROW(parse("((5 + 3) * 2) + --------"), parser_exception);
     EXPECT_THROW(parse("(5 + 3) + (5 - 3) + * -7"), parser_exception);
     EXPECT_THROW(parse("------------------------------"), parser_exception);
@@ -297,7 +283,7 @@ TEST(Parsing, Failures) {
 }
 
 TEST(Parsing, RandomExpressions) {
-    for (int depth = 1; depth < 50; ++depth) {
+    for (int depth = 1; depth < 60; ++depth) {
         auto expected = gen_random_tree(depth);
         EXPECT_EQ(parse(expected.to_string()), expected);
     }
